@@ -60,11 +60,17 @@ add_action('plugins_loaded', 'sc_podcasts_init_mode', 5);
 // Core includes - load after constants are defined
 add_action('plugins_loaded', 'sc_podcasts_load_includes', 10);
 function sc_podcasts_load_includes() {
+    error_log('SC Podcasts: Loading includes...');
+    error_log('SC Podcasts: SC_POST_TYPE defined = ' . (defined('SC_POST_TYPE') ? SC_POST_TYPE : 'NO'));
+    error_log('SC Podcasts: SC_TAXONOMY defined = ' . (defined('SC_TAXONOMY') ? SC_TAXONOMY : 'NO'));
+    
     require_once SC_PODCASTS_PLUGIN_DIR . 'includes/class-sc-podcasts-cpt.php';
     require_once SC_PODCASTS_PLUGIN_DIR . 'includes/class-sc-podcasts-api.php';
     require_once SC_PODCASTS_PLUGIN_DIR . 'includes/class-sc-podcasts-sync.php';
     require_once SC_PODCASTS_PLUGIN_DIR . 'includes/class-sc-podcasts-admin.php';
     require_once SC_PODCASTS_PLUGIN_DIR . 'includes/class-sc-podcasts-migration.php';
+    
+    error_log('SC Podcasts: All classes loaded');
 }
 
 // Activation/Deactivation
@@ -156,10 +162,18 @@ function sc_podcasts_cron_schedules($schedules) {
 
 // Initialize components
 add_action('plugins_loaded', function() {
+    error_log('SC Podcasts: Initializing components...');
+    
     if (defined('SC_POST_TYPE') && defined('SC_TAXONOMY')) {
+        error_log('SC Podcasts: Constants defined, creating instances');
         SC_Podcasts_CPT::instance();
         SC_Podcasts_Admin::instance();
         SC_Podcasts_Sync::instance();
+        error_log('SC Podcasts: All instances created');
+    } else {
+        error_log('SC Podcasts: ERROR - Constants not defined! Cannot initialize.');
+        error_log('SC Podcasts: SC_POST_TYPE = ' . (defined('SC_POST_TYPE') ? SC_POST_TYPE : 'NOT DEFINED'));
+        error_log('SC Podcasts: SC_TAXONOMY = ' . (defined('SC_TAXONOMY') ? SC_TAXONOMY : 'NOT DEFINED'));
     }
 }, 20);
 

@@ -33,6 +33,22 @@ class SC_Podcasts_Admin {
     }
     
     public function add_admin_menu() {
+        // Debug logging
+        error_log('SC Podcasts: add_admin_menu called');
+        error_log('SC Podcasts: SC_POST_TYPE = ' . (defined('SC_POST_TYPE') ? SC_POST_TYPE : 'NOT DEFINED'));
+        error_log('SC Podcasts: SC_PARALLEL_MODE = ' . (defined('SC_PARALLEL_MODE') ? (SC_PARALLEL_MODE ? 'true' : 'false') : 'NOT DEFINED'));
+        
+        // Add top-level menu page for easy access
+        add_menu_page(
+            'SC Podcasts',
+            'SC Podcasts',
+            'manage_options',
+            'edit.php?post_type=' . SC_POST_TYPE,
+            '',
+            'dashicons-microphone',
+            7
+        );
+        
         add_submenu_page(
             'edit.php?post_type=' . SC_POST_TYPE,
             'SC Podcasts Settings',
