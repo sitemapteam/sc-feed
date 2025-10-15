@@ -1,0 +1,53 @@
+/* SC Podcasts Admin Styles */
+
+.sc-podcasts-status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.sc-podcasts-status-synced { color: #46b450; }
+.sc-podcasts-status-pending { color: #ffb900; }
+.sc-podcasts-status-failed { color: #dc3232; }
+.sc-podcasts-status-not-synced { color: #999; }
+
+.sc-podcasts-migration-notice {
+    background: #fff3cd;
+    border-left: 4px solid #ffb900;
+    padding: 12px;
+    margin: 20px 0;
+}
+
+.sc-podcasts-migration-results {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0f0f1;
+    border-radius: 3px;
+}
+
+.sc-podcasts-migration-results.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.sc-podcasts-migration-results.error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.card {
+    max-width: 800px;
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.card h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
