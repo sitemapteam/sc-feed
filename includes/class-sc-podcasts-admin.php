@@ -28,6 +28,8 @@ class SC_Podcasts_Admin {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('wp_ajax_ncrmnt_premium_episodes', array($this, 'ajax_get_premium_episodes'));
         add_action('wp_ajax_nopriv_ncrmnt_premium_episodes', array($this, 'ajax_get_premium_episodes'));
+        add_action('wp_ajax_sc_podcasts_test_connection', array($this, 'ajax_test_connection'));
+        add_action('wp_ajax_sc_podcasts_save_feed_mapping', array($this, 'ajax_save_feed_mapping'));
     }
     
     public function add_admin_menu() {
@@ -142,15 +144,22 @@ class SC_Podcasts_Admin {
             delete_transient('sc_podcasts_activated');
         }
         
-        if (SC_PARALLEL_MODE && is_plugin_active('increment-core/increment-core.php')) {
-            $screen = get_current_screen();
-            if ($screen && $screen->post_type === SC_POST_TYPE) {
-                ?>
-                <div class="notice notice-warning">
-                    <p><strong>Parallel Mode Active:</strong> SC Podcasts is running alongside Increment. 
-                    <a href="<?php echo admin_url('edit.php?post_type=' . SC_POST_TYPE . '&page=sc-podcasts-migration'); ?>">View Migration Tools</a></p>
-                </div>
-                <?php
+        if (SC_PARALLEL_MODE) {
+            // Check if Increment is active
+            if (!function_exists('is_plugin_active')) {
+                include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+            }
+            
+            if (function_exists('is_plugin_active') && is_plugin_active('increment-core/increment-core.php')) {
+                $screen = get_current_screen();
+                if ($screen && $screen->post_type === SC_POST_TYPE) {
+                    ?>
+                    <div class="notice notice-warning">
+                        <p><strong>Parallel Mode Active:</strong> SC Podcasts is running alongside Increment. 
+                        <a href="<?php echo admin_url('edit.php?post_type=' . SC_POST_TYPE . '&page=sc-podcasts-migration'); ?>">View Migration Tools</a></p>
+                    </div>
+                    <?php
+                }
             }
         }
     }
@@ -206,7 +215,12 @@ class SC_Podcasts_Admin {
                                 Enable Parallel Mode (use sc_episode post type)
                             </label>
                             <p class="description">
-                                <?php if (is_plugin_active('increment-core/increment-core.php')): ?>
+                                <?php 
+                                if (!function_exists('is_plugin_active')) {
+                                    include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+                                }
+                                if (function_exists('is_plugin_active') && is_plugin_active('increment-core/increment-core.php')): 
+                                ?>
                                 <strong style="color:#d63638;">⚠ Increment plugin is active.</strong> Keep this checked to avoid conflicts.
                                 <?php else: ?>
                                 Uncheck to use production post type (ncrmnt_episode)
@@ -276,7 +290,14 @@ class SC_Podcasts_Admin {
             <div class="card">
                 <h2>Migration Status</h2>
                 <p>Current mode: <strong><?php echo SC_PARALLEL_MODE ? 'Parallel' : 'Production'; ?></strong></p>
-                <p>Increment plugin: <strong><?php echo is_plugin_active('increment-core/increment-core.php') ? 'Active' : 'Inactive'; ?></strong></p>
+                <p>Increment plugin: <strong>
+                    <?php 
+                    if (!function_exists('is_plugin_active')) {
+                        include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+                    }
+                    echo (function_exists('is_plugin_active') && is_plugin_active('increment-core/increment-core.php')) ? 'Active' : 'Inactive'; 
+                    ?>
+                </strong></p>
             </div>
             
             <div class="card">
@@ -408,5 +429,54 @@ class SC_Podcasts_Admin {
             'paged'         => $paged,
             'max_num_pages' => $query->max_num_pages,
         ));
+    }
+    
+    public function ajax_test_connection() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Unauthorized'));
+            return;
+        }
+        
+        check_ajax_referer('sc_podcasts_nonce', 'nonce');
+        
+        $api = SC_Podcasts_API::instance();
+        $result = $api->test_connection();
+        
+        if ($result) {
+            wp_send_json_success(array('message' => 'Connection successful!'));
+        } else {
+            wp_send_json_error(array('message' => 'Connection failed. Check your API token.'));
+        }
+    }
+    
+    public function ajax_save_feed_mapping() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Unauthorized'));
+            return;
+        }
+        
+        check_ajax_referer('sc_podcasts_nonce', 'nonce');
+        
+        $feed_id = isset($_POST['feed_id']) ? sanitize_text_field($_POST['feed_id']) : '';
+        $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : '';
+        
+        if (empty($feed_id)) {
+            wp_send_json_error(array('message' => 'Invalid feed ID'));
+            return;
+        }
+        
+        $feed_mapping = get_option('sc_podcasts_feed_mapping', array());
+        
+        if (empty($term_id)) {
+            // Remove mapping
+            unset($feed_mapping[$feed_id]);
+        } else {
+            // Add/update mapping
+            $feed_mapping[$feed_id] = $term_id;
+        }
+        
+        update_option('sc_podcasts_feed_mapping', $feed_mapping);
+        
+        wp_send_json_success(array('message' => 'Mapping saved'));
     }
 }

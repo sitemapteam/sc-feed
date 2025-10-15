@@ -169,6 +169,11 @@ class SC_Podcasts_CPT {
     }
     
     public function register_custom_fields() {
+        // Check if Fieldmanager is available
+        if (!class_exists('Fieldmanager_Field')) {
+            return;
+        }
+        
         // Episode fields
         $fm_notes = new Fieldmanager_RichTextArea(array('name' => 'ncrmnt_notes'));
         $fm_notes->add_meta_box('Episode notes', SC_POST_TYPE);
