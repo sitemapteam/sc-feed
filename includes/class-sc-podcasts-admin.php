@@ -12,14 +12,13 @@ class SC_Podcasts_Admin {
     }
     
     private function __construct() {
-        add_action('plugins_loaded', array($this, 'init_admin'), 15);
-    }
-    
-    public function init_admin() {
+        // Constants should already be defined by the time this is instantiated
         if (!defined('SC_POST_TYPE') || !defined('SC_TAXONOMY')) {
+            error_log('SC Podcasts Admin: ERROR - Constants not defined in constructor!');
             return;
         }
         
+        error_log('SC Podcasts Admin: Constructor called, adding hooks');
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         add_filter('manage_' . SC_POST_TYPE . '_posts_columns', array($this, 'add_admin_columns'));
@@ -30,6 +29,8 @@ class SC_Podcasts_Admin {
         add_action('wp_ajax_nopriv_ncrmnt_premium_episodes', array($this, 'ajax_get_premium_episodes'));
         add_action('wp_ajax_sc_podcasts_test_connection', array($this, 'ajax_test_connection'));
         add_action('wp_ajax_sc_podcasts_save_feed_mapping', array($this, 'ajax_save_feed_mapping'));
+        
+        error_log('SC Podcasts Admin: All admin hooks registered');
     }
     
     public function add_admin_menu() {

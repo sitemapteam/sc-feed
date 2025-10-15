@@ -12,15 +12,13 @@ class SC_Podcasts_CPT {
     }
     
     private function __construct() {
-        // Wait for constants to be defined
-        add_action('plugins_loaded', array($this, 'init_cpt'), 15);
-    }
-    
-    public function init_cpt() {
+        // Constants should already be defined by the time this is instantiated
         if (!defined('SC_POST_TYPE') || !defined('SC_TAXONOMY')) {
+            error_log('SC Podcasts CPT: ERROR - Constants not defined in constructor!');
             return;
         }
         
+        error_log('SC Podcasts CPT: Constructor called, adding hooks');
         add_action('init', array($this, 'register_post_type'));
         add_action('init', array($this, 'register_taxonomy'));
         add_filter('post_type_link', array($this, 'episode_permalink_structure'), 10, 4);
@@ -29,6 +27,8 @@ class SC_Podcasts_CPT {
         if (defined('FM_VERSION')) {
             add_action('after_setup_theme', array($this, 'register_custom_fields'));
         }
+        
+        error_log('SC Podcasts CPT: All CPT hooks registered');
     }
     
     public function register_post_type() {
